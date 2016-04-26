@@ -1,6 +1,7 @@
 package servlets;
 
 import accounts.AccountService;
+import accounts.UserProfile;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -26,19 +27,38 @@ public class UserServlet extends HttpServlet {
 
     //sing up
     @Override
-    protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        // TODO: 26.04.2016  
+    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+        String login = req.getParameter("login");
+        String pass = req.getParameter("pass");
+        String email = req.getParameter("email");
+
+        if(login == null || pass == null) {
+            resp.setContentType("text/html;charset=utf-8");
+            resp.setStatus(HttpServletResponse.SC_BAD_REQUEST);
+            return;
+        }
+
+        UserProfile profile = accountService.getUserByLogin(login);
+        if(profile == null) {
+            profile = new UserProfile(login, pass, email);
+            accountService.addUser(profile);
+            resp.setStatus(HttpServletResponse.SC_OK);
+        } else {
+            resp.setContentType("text/html;charset=utf-8");
+            resp.getWriter().println("Login is already present in the system");
+            resp.setStatus(HttpServletResponse.SC_CONFLICT);
+        }
     }
 
     // change profile
     @Override
-    protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
+    protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         // TODO: 26.04.2016  
     }
 
     // unregister
     @Override
     protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        // TODO: 26.04.2016  
+        // TODO: 26.04.2016
     }
 }
