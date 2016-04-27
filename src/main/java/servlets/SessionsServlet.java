@@ -45,7 +45,7 @@ public class SessionsServlet extends HttpServlet {
     @Override
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String login = req.getParameter("login");
-        String pass = req.getParameter("pass");
+        String pass = req.getParameter("password");
 
         if(login == null || pass == null) {
             resp.setContentType("text/html;charset=utf-8");
@@ -56,15 +56,14 @@ public class SessionsServlet extends HttpServlet {
         UserProfile profile = accountService.getUserByLogin(login);
         if(profile == null || !profile.getPass().equals(pass)) {
             resp.setContentType("text/html;charset=utf-8");
+            resp.getWriter().println("Unauthorized");
             resp.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
             return;
         }
 
         accountService.addSession(req.getSession().getId(), profile);
-        Gson gson = new Gson();
-        String json = gson.toJson(profile);
         resp.setContentType("text/html;charset=utf-8");
-        resp.getWriter().println(json);
+        resp.getWriter().println("Authorized: " + profile.getLogin());
         resp.setStatus(HttpServletResponse.SC_OK);
     }
 
