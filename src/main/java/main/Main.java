@@ -1,11 +1,7 @@
 package main;
 
-import accounts.AccountService;
-import accounts.UserProfile;
-import org.eclipse.jetty.server.Handler;
+import database.DBService;
 import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.handler.HandlerList;
-import org.eclipse.jetty.server.handler.ResourceHandler;
 import org.eclipse.jetty.servlet.ServletContextHandler;
 import org.eclipse.jetty.servlet.ServletHolder;
 import servlets.SessionsServlet;
@@ -16,26 +12,17 @@ import servlets.UserServlet;
  */
 public class Main {
     public static void main(String[] args) throws Exception {
-        AccountService accountService = new AccountService();
-
-        /*accountService.addUser(new UserProfile("admin"));
-        accountService.addUser(new UserProfile("test"));*/
+        DBService dbService = new DBService();
 
         ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
-        context.addServlet(new ServletHolder(new UserServlet(accountService)), "/signup");
-        context.addServlet(new ServletHolder(new SessionsServlet(accountService)), "/signin");
-
-        ResourceHandler resourceHandler = new ResourceHandler();
-        resourceHandler.setResourceBase("public_html");
-
-        HandlerList handlers = new HandlerList();
-        handlers.setHandlers(new Handler[]{resourceHandler, context});
+        context.addServlet(new ServletHolder(new UserServlet(dbService)), "/signup");
+        context.addServlet(new ServletHolder(new SessionsServlet(dbService)), "/signin");
 
         Server server = new Server(8080);
-        server.setHandler(handlers);
+        server.setHandler(context);
 
-        server.start();
         System.out.println("Server started");
+        server.start();
         server.join();
     }
 }

@@ -1,7 +1,8 @@
 package servlets;
 
-import accounts.AccountService;
-import accounts.UserProfile;
+import accounts.UsersDataSet;
+import database.DBException;
+import database.DBService;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -13,16 +14,10 @@ import java.io.IOException;
  * @author k.gulyy
  */
 public class UserServlet extends HttpServlet {
-    private final AccountService accountService;
+    private final DBService dbService;
 
-    public UserServlet(AccountService accountService) {
-        this.accountService = accountService;
-    }
-
-    // get public user profile
-    @Override
-    protected void doGet(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        // TODO: 26.04.2016  
+    public UserServlet(DBService dbService) {
+        this.dbService = dbService;
     }
 
     //sing up
@@ -30,7 +25,6 @@ public class UserServlet extends HttpServlet {
     protected void doPost(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
         String login = req.getParameter("login");
         String pass = req.getParameter("password");
-        String email = req.getParameter("email");
 
         if(login == null || pass == null) {
             resp.setContentType("text/html;charset=utf-8");
@@ -38,27 +32,12 @@ public class UserServlet extends HttpServlet {
             return;
         }
 
-        UserProfile profile = accountService.getUserByLogin(login);
-        if(profile == null) {
-            profile = new UserProfile(login, pass, email);
-            accountService.addUser(profile);
+        try {
+            UsersDataSet user = new UsersDataSet(login, pass);
+            dbService.addUser(user);
             resp.setStatus(HttpServletResponse.SC_OK);
-        } else {
-            resp.setContentType("text/html;charset=utf-8");
-            resp.getWriter().println("Login is already present in the system");
-            resp.setStatus(HttpServletResponse.SC_CONFLICT);
+        } catch (DBException e) {
+            e.printStackTrace();
         }
-    }
-
-    // change profile
-    @Override
-    protected void doPut(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        // TODO: 26.04.2016  
-    }
-
-    // unregister
-    @Override
-    protected void doDelete(HttpServletRequest req, HttpServletResponse resp) throws ServletException, IOException {
-        // TODO: 26.04.2016
     }
 }
