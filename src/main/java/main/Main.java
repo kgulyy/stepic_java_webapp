@@ -1,40 +1,26 @@
 package main;
 
-import accounts.AccountService;
-import accounts.UserProfile;
-import org.eclipse.jetty.server.Handler;
-import org.eclipse.jetty.server.Server;
-import org.eclipse.jetty.server.handler.HandlerList;
-import org.eclipse.jetty.server.handler.ResourceHandler;
-import org.eclipse.jetty.servlet.ServletContextHandler;
-import org.eclipse.jetty.servlet.ServletHolder;
-import servlets.SessionsServlet;
-import servlets.UserServlet;
+import database.DBException;
+import database.DBService;
+import database.datasets.UsersDataSet;
 
 /**
  * @author k.gulyy
  */
 public class Main {
-    public static void main(String[] args) throws Exception {
-        AccountService accountService = new AccountService();
+    public static void main(String[] args) {
+        DBService dbService = new DBService();
+        dbService.printConnectInfo();
 
-        accountService.addUser(new UserProfile("admin"));
-        accountService.addUser(new UserProfile("test"));
+        try {
+            long userId = dbService.addUser("tully");
+            System.out.println("Added user id: " + userId);
 
-        ServletContextHandler context = new ServletContextHandler(ServletContextHandler.SESSIONS);
-        context.addServlet(new ServletHolder(new UserServlet(accountService)), "/api/v1/users");
-        context.addServlet(new ServletHolder(new SessionsServlet(accountService)), "/api/v1/sessions");
+            UsersDataSet dataSet = dbService.getUser(userId);
+            System.out.println("User data set: " + dataSet);
 
-        ResourceHandler resourceHandler = new ResourceHandler();
-        resourceHandler.setResourceBase("public_html");
-
-        HandlerList handlers = new HandlerList();
-        handlers.setHandlers(new Handler[]{resourceHandler, context});
-
-        Server server = new Server(8080);
-        server.setHandler(handlers);
-
-        server.start();
-        server.join();
+        } catch (DBException e) {
+            e.printStackTrace();
+        }
     }
 }
